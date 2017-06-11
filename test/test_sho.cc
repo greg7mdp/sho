@@ -58,7 +58,7 @@ namespace dltest
     #include <Psapi.h>
     #undef min
     #undef max
-#else
+#elif !defined(__APPLE__)
     #include <sys/types.h>
     #include <sys/sysinfo.h>
 #endif
@@ -72,7 +72,7 @@ namespace dltest
         memInfo.dwLength = sizeof(MEMORYSTATUSEX);
         GlobalMemoryStatusEx(&memInfo);
         return static_cast<uint64_t>(memInfo.ullTotalPageFile);
-#else
+#elif !defined(__APPLE__)
         struct sysinfo memInfo;
         sysinfo (&memInfo);
         auto totalVirtualMem = memInfo.totalram;
@@ -80,6 +80,8 @@ namespace dltest
         totalVirtualMem += memInfo.totalswap;
         totalVirtualMem *= memInfo.mem_unit;
         return static_cast<uint64_t>(totalVirtualMem);
+#else
+        return 0;
 #endif
     }
 
@@ -90,7 +92,7 @@ namespace dltest
         memInfo.dwLength = sizeof(MEMORYSTATUSEX);
         GlobalMemoryStatusEx(&memInfo);
         return static_cast<uint64_t>(memInfo.ullTotalPageFile - memInfo.ullAvailPageFile);
-#else
+#elif !defined(__APPLE__)
         struct sysinfo memInfo;
         sysinfo(&memInfo);
         auto virtualMemUsed = memInfo.totalram - memInfo.freeram;
@@ -99,6 +101,8 @@ namespace dltest
         virtualMemUsed *= memInfo.mem_unit;
 
         return static_cast<uint64_t>(virtualMemUsed);
+#else
+        return 0;
 #endif
     }
 
@@ -108,7 +112,7 @@ namespace dltest
         PROCESS_MEMORY_COUNTERS_EX pmc;
         GetProcessMemoryInfo(GetCurrentProcess(), reinterpret_cast<PPROCESS_MEMORY_COUNTERS>(&pmc), sizeof(pmc));
         return static_cast<uint64_t>(pmc.PrivateUsage);
-#else
+#elif !defined(__APPLE__)
         auto parseLine = 
             [](char* line)->int
             {
@@ -139,6 +143,8 @@ namespace dltest
 
         fclose(file);
         return static_cast<uint64_t>(result) * 1024;
+#else
+        return 0;
 #endif
     }
 
@@ -149,7 +155,7 @@ namespace dltest
         memInfo.dwLength = sizeof(MEMORYSTATUSEX);
         GlobalMemoryStatusEx(&memInfo);
         return static_cast<uint64_t>(memInfo.ullTotalPhys);
-#else
+#elif !defined(__APPLE__)
         struct sysinfo memInfo;
         sysinfo(&memInfo);
 
@@ -157,6 +163,8 @@ namespace dltest
 
         totalPhysMem *= memInfo.mem_unit;
         return static_cast<uint64_t>(totalPhysMem);
+#else
+        return 0;
 #endif
     }
 }
