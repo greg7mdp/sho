@@ -173,6 +173,17 @@ static float _to_mb(uint64_t m) { return (float)((double)m / (1024 * 1024)); }
 template <class Hash, class K, class V>
 void run_test(const char *alloc_name, size_t num_iter)
 {
+    // ----------------------- some checks
+    {
+        Hash h;
+
+        typename Hash::iterator it(h.begin());
+        typename Hash::const_iterator cit(h.cbegin());
+        cit = it;                // assign const & non-const iters
+        if (cit != h.end())      // compare const & non-const iters
+            abort();
+    }
+    
     printf("---------------- testing %s\n", alloc_name);
 
     printf("\nmem usage before the test: %4.1f\n", _to_mb(dltest::GetProcessMemoryUsed()));
@@ -188,11 +199,17 @@ void run_test(const char *alloc_name, size_t num_iter)
         if (i % 5000 == 0)
             num_insert = 10000;
 
-        K inserted = 0;
+        K inserted = 0, first = 0;
+
         for (uint32_t j=0; j<num_insert; ++j)
         {
             inserted = rand();
+            if (j == 0)
+                first = inserted;
+
             hashes[i].insert(std::make_pair((K)inserted, (V)0));
+            if (j && j == num_insert-1 && inserted != first)
+                hashes[i].erase(first);
         }
 
         if (inserted && hashes[i].find(inserted) == hashes[i].end())
@@ -216,7 +233,7 @@ void run_test(const char *alloc_name, size_t num_iter)
 int main()
 {
     typedef std::unordered_map<uint32_t, void *> StdMap;
-    typedef sho<2, std::unordered_map, uint32_t, void *>        ShoMap;
+    typedef sho<3, std::unordered_map, uint32_t, void *>        ShoMap;
 
     run_test<StdMap, uint32_t, void *>("unordered_map", 5000000);
     run_test<ShoMap, uint32_t, void *>("unordered_map with sho", 5000000);

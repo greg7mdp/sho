@@ -3,8 +3,10 @@
 
 #include <cstdint>
 #include <cassert>
+#include <stdexcept>
 #include <algorithm>
 #include <utility>
+#include <iterator>
 
 // ---------------------------------------------------------------------
 //            S M A L L    H A S H     O P T I M I Z A T I O N
@@ -45,20 +47,26 @@ public:
     typedef typename Map::iterator              map_iterator;
 
     // ----------------
-    template <class Val>
-    class Iterator
+    template <class Val, class MapIt>
+    class Iterator : public std::iterator<std::bidirectional_iterator_tag, Val>
     {
     public:
         typedef Val value_type;
-        typedef typename sho::Map::iterator map_iter;
+
+        template <class CV, class CIt>
+        Iterator(const Iterator<CV, CIt> &o) : _p((value_type *)o._p), _it(o._it) {}
 
         explicit Iterator(const value_type *p) : _p((value_type *)p) {}
-        explicit Iterator(const map_iter &o) : _p(0), _it(o) {}
-        Iterator(const Iterator &o) : _p(o._p), _it(o._it) {}
-        Iterator& operator++() { if (_p) ++_p; else ++_it; }
-        Iterator& operator--() { if (_p) --_p; else --_it; }
+        explicit Iterator(const MapIt &o) : _p(0), _it(o) {}
+
+        Iterator& operator++()   { if (_p) ++_p; else ++_it; }
+        Iterator& operator--()   { if (_p) --_p; else --_it; }
+        Iterator operator++(int) { Iterator tmp(*this); ++*this; return tmp; }
+        Iterator operator--(int) { Iterator tmp(*this); --*this; return tmp; }
+
         bool operator==(const Iterator &o) const { return _p ? _p == o._p : _it == o._it; }
         bool operator!=(const Iterator &o) const { return !(*this == o); }
+
         value_type& operator*() const  { return _p ? *_p : *_it; }
         value_type* operator->() const { return &(operator*()); }
 
@@ -66,12 +74,12 @@ public:
         friend class sho;
         
         value_type *_p;
-        map_iter    _it;
+        MapIt       _it;
     };
 
     // ----------------
-    typedef Iterator<value_type>        iterator;
-    typedef Iterator<const value_type>  const_iterator;
+    typedef Iterator<value_type, typename Map::iterator>              iterator;
+    typedef Iterator<const value_type, typename Map::const_iterator>  const_iterator;
 
     sho(size_type = 0) : _cnt(0) {}
 
@@ -111,7 +119,7 @@ public:
     
     iterator end() const             
     {
-        return _hasMap() ? iterator(_getMap()->end()) : iterator(&_items[N]); 
+        return _hasMap() ? iterator(_getMap()->end()) : iterator(&_items[_cnt]); 
     }
 
     const_iterator cbegin() const            
@@ -121,7 +129,7 @@ public:
     
     const_iterator cend() const             
     {
-        return _hasMap() ? const_iterator(_getMap()->end()) : const_iterator(&_items[N]); 
+        return _hasMap() ? const_iterator(_getMap()->end()) : const_iterator(&_items[_cnt]); 
     }
  
     iterator find(const key_type& key)
@@ -146,6 +154,26 @@ public:
         return cend();
     }
 
+    size_type erase (const key_type& k)
+    {
+        if (_hasMap())
+            return _getMap()->erase(k);
+
+        for (size_t i=0; i<_cnt; ++i)
+        {
+            if (key_equal()(_items[i].first, k))
+            {
+                std::rotate((mutable_value_type *)&_items[i], 
+                            (mutable_value_type *)&_items[i+1], 
+                            (mutable_value_type *)&_items[_cnt]);
+                --_cnt;
+                allocator_type().destroy(&_items[_cnt]);
+                return 1;
+            }
+        }
+        return 0;
+    }
+        
     mapped_type& operator[](const key_type& key)
     {
         if (_hasMap())
@@ -158,6 +186,17 @@ public:
         }
         insert(value_type(key, mapped_type()));
         return this->operator[](key);
+    }
+
+    mapped_type& at(const key_type& key)
+    {
+        if (_hasMap())
+            return _getMap()->at(key); // throws if not found
+
+        for (size_t i=0; i<_cnt; ++i)
+            if (key_equal()(_items[i].first, key))
+                return _items[i].second;
+        throw std::out_of_range("at: key not present");
     }
 
 
@@ -188,6 +227,15 @@ public:
 
     size_type size() const { return _hasMap() ? _getMap()->size() : _cnt; }
 
+    size_type bucket_count() const { return _hasMap() ? _getMap()->bucket_count() : _cnt; }
+
+    size_type count (const key_type& k) const
+    {
+        return find(k) == cend() ? 0 : 1;
+    }
+
+    bool empty() const { return size() == 0; }
+
     void clear() 
     {
         if (_hasMap())
@@ -196,7 +244,7 @@ public:
         {
             allocator_type alloc;
             for (size_t i=0; i<_cnt; ++i)
-                alloc.destruct(_items[i]);
+                alloc.destroy(&_items[i]);
             _cnt = 0;
         }
     }
