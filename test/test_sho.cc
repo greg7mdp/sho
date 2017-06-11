@@ -180,7 +180,7 @@ void run_test(const char *container_name, size_t num_iter)
         typename Hash::iterator it(h.begin());
         typename Hash::const_iterator cit(h.cbegin());
         cit = it;                // assign const & non-const iters
-        it  = cit;
+        //it  = cit;
         if (cit != h.end() || it != h.cend())      // compare const & non-const iters
             abort();
     }
@@ -210,7 +210,12 @@ void run_test(const char *container_name, size_t num_iter)
 
             hashes[i].insert(std::make_pair((K)inserted, (V)0));
             if (j && j == num_insert-1 && inserted != first)
-                hashes[i].erase(first);
+            {
+                if (j % 2)
+                    hashes[i].erase(first);
+                else
+                    hashes[i].erase(hashes[i].find(first));
+            }
         }
 
         if (inserted && hashes[i].find(inserted) == hashes[i].end())
@@ -232,6 +237,7 @@ void run_test(const char *container_name, size_t num_iter)
 #define TOSTRING(x) STRINGIFY(x)
 
 #if 0
+    #define SPP_DEFAULT_ALLOCATOR spp::libc_allocator
     #include <sparsepp/spp.h>
     #define BASE_MAP spp::sparse_hash_map
 #else

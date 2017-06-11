@@ -1,4 +1,5 @@
 test/*
 !test/test_sho.cc
 !test/makefile
+#README.md#
 

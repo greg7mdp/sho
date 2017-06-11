@@ -45,6 +45,7 @@ public:
     typedef typename Map::difference_type       difference_type;
 
     typedef typename Map::iterator              map_iterator;
+    typedef typename Map::const_iterator        map_const_iterator;
 
     // ----------------
     template <class Val, class MapIt>
@@ -69,6 +70,9 @@ public:
 
         value_type& operator*() const  { return _p ? *_p : *_it; }
         value_type* operator->() const { return &(operator*()); }
+        
+        const MapIt& getMapIt() const { assert(!_p); return _it; }
+        value_type * getPtr() const   { assert(_p); return _p; }
 
     private:
         friend class sho;
@@ -78,8 +82,8 @@ public:
     };
 
     // ----------------
-    typedef Iterator<value_type, typename Map::iterator>              iterator;
-    typedef Iterator<const value_type, typename Map::const_iterator>  const_iterator;
+    typedef Iterator<value_type, map_iterator>              iterator;
+    typedef Iterator<const value_type, map_const_iterator>  const_iterator;
 
     sho(size_type = 0) : _cnt(0) {}
 
@@ -154,7 +158,7 @@ public:
         return cend();
     }
 
-    size_type erase (const key_type& k)
+    size_type erase(const key_type& k)
     {
         if (_hasMap())
             return _getMap()->erase(k);
@@ -172,6 +176,29 @@ public:
             }
         }
         return 0;
+    }
+
+    iterator erase(const_iterator it)
+    {
+        if (_hasMap())
+        {
+            map_iterator res = _getMap()->erase(it.getMapIt());
+            return iterator(res);
+        }
+        const value_type *cur = it.getPtr();
+        size_t idx = cur - &_items[0];
+        assert(idx <= N);
+
+        if (idx < N && _cnt)
+        {
+            std::rotate((mutable_value_type *)cur, 
+                        (mutable_value_type *)cur+1, 
+                        (mutable_value_type *)&_items[_cnt]);
+            --_cnt;
+            allocator_type().destroy(&_items[_cnt]);
+            return iterator(cur);
+        }
+        return end();
     }
         
     mapped_type& operator[](const key_type& key)
@@ -252,7 +279,7 @@ public:
 private:
     bool   _hasMap() const { return _cnt > N; }
     
-    Map *_getMap() const { assert(_hasMap()); return (Map *)_cnt; }
+    Map *  _getMap() const { assert(_hasMap()); return (Map *)_cnt; }
 
     void   _cleanMap() { delete _getMap(); _cnt = 0; }
 
