@@ -171,7 +171,7 @@ static float _to_mb(uint64_t m) { return (float)((double)m / (1024 * 1024)); }
 // -----------------------------------------------------------
 // -----------------------------------------------------------
 template <class Hash, class K, class V>
-void run_test(const char *alloc_name, size_t num_iter)
+void run_test(const char *container_name, size_t num_iter)
 {
     // ----------------------- some checks
     {
@@ -180,11 +180,12 @@ void run_test(const char *alloc_name, size_t num_iter)
         typename Hash::iterator it(h.begin());
         typename Hash::const_iterator cit(h.cbegin());
         cit = it;                // assign const & non-const iters
-        if (cit != h.end())      // compare const & non-const iters
+        it  = cit;
+        if (cit != h.end() || it != h.cend())      // compare const & non-const iters
             abort();
     }
     
-    printf("---------------- testing %s\n", alloc_name);
+    printf("---------------- testing %s\n", container_name);
 
     printf("\nmem usage before the test: %4.1f\n", _to_mb(dltest::GetProcessMemoryUsed()));
     srand(43); // always same sequence of random numbers
@@ -227,14 +228,25 @@ void run_test(const char *alloc_name, size_t num_iter)
     printf("\n");
 }
 
+#define STRINGIFY(A)  #A
+#define TOSTRING(x) STRINGIFY(x)
 
+#if 0
+    #include <sparsepp/spp.h>
+    #define BASE_MAP spp::sparse_hash_map
+#else
+    #define BASE_MAP std::unordered_map
+#endif
 // -----------------------------------------------------------
 // -----------------------------------------------------------
 int main()
 {
-    typedef std::unordered_map<uint32_t, void *> StdMap;
-    typedef sho<3, std::unordered_map, uint32_t, void *>        ShoMap;
+    typedef BASE_MAP<uint32_t, void *>          StdMap;
+    typedef sho<3, BASE_MAP, uint32_t, void *>  ShoMap;
 
-    run_test<StdMap, uint32_t, void *>("unordered_map", 5000000);
-    run_test<ShoMap, uint32_t, void *>("unordered_map with sho", 5000000);
+    run_test<StdMap, uint32_t, void *>(TOSTRING(BASE_MAP), 5000000);
+
+    char cont_name[128];
+    sprintf(cont_name, "%s with sho", TOSTRING(BASE_MAP));
+    run_test<ShoMap, uint32_t, void *>(cont_name, 5000000);
 }
