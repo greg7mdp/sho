@@ -32,6 +32,7 @@ class sho
 public:
     typedef RefMap<K, V, Hash, Pred, Alloc>     Map;
     typedef typename Map::key_type              key_type;
+    typedef typename Map::mapped_type           mapped_type;
     typedef typename Map::value_type            value_type;
     typedef typename Map::hasher                hasher;
     typedef typename Map::key_equal             key_equal;
@@ -144,6 +145,21 @@ public:
                     return const_iterator(&_items[i]); 
         return cend();
     }
+
+    mapped_type& operator[](const key_type& key)
+    {
+        if (_hasMap())
+            return _getMap()->operator[](key);
+        else
+        {
+            for (size_t i=0; i<_cnt; ++i)
+                if (key_equal()(_items[i].first, key))
+                    return _items[i].second;
+        }
+        insert(value_type(key, mapped_type()));
+        return this->operator[](key);
+    }
+
 
     std::pair<iterator, bool> insert(const value_type& val)
     {
