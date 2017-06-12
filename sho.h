@@ -60,8 +60,8 @@ public:
         explicit Iterator(const value_type *p) : _p((value_type *)p) {}
         explicit Iterator(const MapIt &o) : _p(0), _it(o) {}
 
-        Iterator& operator++()   { if (_p) ++_p; else ++_it; }
-        Iterator& operator--()   { if (_p) --_p; else --_it; }
+        Iterator& operator++()   { if (_p) ++_p; else ++_it; return *this; }
+        Iterator& operator--()   { if (_p) --_p; else --_it; return *this; }
         Iterator operator++(int) { Iterator tmp(*this); ++*this; return tmp; }
         Iterator operator--(int) { Iterator tmp(*this); --*this; return tmp; }
 
@@ -167,6 +167,7 @@ public:
         {
             if (key_equal()(_items[i].first, k))
             {
+                // rotate item to delete to last position
                 std::rotate((mutable_value_type *)&_items[i], 
                             (mutable_value_type *)&_items[i+1], 
                             (mutable_value_type *)&_items[_cnt]);
@@ -191,6 +192,7 @@ public:
 
         if (idx < N && _cnt)
         {
+            // rotate item to delete to last position
             std::rotate((mutable_value_type *)cur, 
                         (mutable_value_type *)cur+1, 
                         (mutable_value_type *)&_items[_cnt]);
