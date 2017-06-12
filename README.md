@@ -4,13 +4,13 @@
 
 When you need a key to value map with the fastest lookup, it is hard to beat a good hash table. Hash tables are so efficient that they are sometimes used as essential parts of other data structures, causing many instances of a hash table to exist in memory.
 
-I decided to implement this class after working with Michael, a user of my [sparsepp](https://github.com/greg7mdp/sparsepp) hash table. His application builds a trie with hundreds of million of nodes, and each node keeps track of its children using a hash map. He originally used [std::unordered_map](http://www.cplusplus.com/reference/unordered_map/unordered_map/), but then switched to using [sparsepp](https://github.com/greg7mdp/sparsepp) in order to reduce the memory usage of his application.
+I decided to implement this class after working with Michael, a user of my [sparsepp](https://github.com/greg7mdp/sparsepp) hash table. His application builds a trie with hundreds of millions of nodes, and each node keeps track of its children using a hash map. He originally used [std::unordered_map](http://www.cplusplus.com/reference/unordered_map/unordered_map/), but then switched to using [sparsepp](https://github.com/greg7mdp/sparsepp) in order to reduce the memory usage of his application.
 
 Michael was pretty happy with the reduced memory usage of sparsepp (memory usage went down from 49GB to 33GB, and execution time was reduced a little from 13 to 12 minutes. However we remained in contact and discussed whether using a custom allocator would help reducing memory usage even further.
 
 When testing with the new optional [allocator](https://github.com/greg7mdp/sparsepp/blob/master/sparsepp/spp_dlalloc.h) from sparsepp based on Doug Lea [malloc](http://g.oswego.edu/dl/html/malloc.html), Michael reported that memory usage was *significantly increased*, not what we had hoped for!
 
-What happened was that Michael's application creates hundreds of million of hash tables. While some of them are very large, most have zero or very few entries. The new allocator, which reserve a private memory space for each hash table, was very ill suited for the task and increased greatly the memory usage of all those (almost) empty hash tables.
+What happened was that Michael's application creates hundreds of millions of hash tables. While some of them are very large, most have zero or very few entries. The new allocator, which reserve a private memory space for each hash table, was very ill suited for the task and increased greatly the memory usage of all those (almost) empty hash tables.
 
 So we decided to try a small hash optimization, which would use a small array of `<key, value>` pairs for small hash maps, and would expand to a full blown hash map (dynamically allocated) when the small array overflowed. This is similar to LLVM's [Small Vector Class](http://llvm.org/docs/doxygen/html/classllvm_1_1SmallVector.html), which uses a local array to avoid memory allocations (and fragmentation) for small vectors.
 
