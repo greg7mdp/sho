@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/greg7mdp/sho.svg?branch=master)](https://travis-ci.org/greg7mdp/sho)
 
-* SHO: The Small Hash Optimization
+# SHO: The Small Hash Optimization
 
 When you need a key to value map with the fastest lookup, it is hard to beat a good hash table. Hash tables are so efficient that they are sometimes used as essential parts of other data structures, causing many instances of a hash table to exist in memory.
 
