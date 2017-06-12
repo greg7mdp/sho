@@ -57,7 +57,7 @@ public:
         template <class CV, class CIt>
         Iterator(const Iterator<CV, CIt> &o) : _p((value_type *)o._p), _it(*((MapIt *)&o._it)) {}
 
-        explicit Iterator(const value_type *p) : _p((value_type *)p) {}
+        explicit Iterator(const value_type *p = 0) : _p((value_type *)p) {}
         explicit Iterator(const MapIt &o) : _p(0), _it(o) {}
 
         Iterator& operator++()   { if (_p) ++_p; else ++_it; return *this; }
