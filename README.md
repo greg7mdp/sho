@@ -34,7 +34,7 @@ Adding the Small Hash Optimization is as easy as including sho.h and updating th
 ```c++
 #include <sho.h>
 
-typedef sho<3, std::unordered_map, uint32_t, void *> MyMap;
+typedef sho::smo<3, std::unordered_map, uint32_t, void *> MyMap;
 ```
 
 The number 3 passed as the first template parameter means that the local array cache will be dimensioned to contain a maximum of 3 entries (you may want to test a few numbers to see which one offers the best size and speed improvement for your use case.

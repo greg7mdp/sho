@@ -20,7 +20,11 @@
 //     - we assume that the value of a pointer is always greater then N.
 // ---------------------------------------------------------------------
 
+namespace sho
+{
+
 // ------------------------------------------------------------------------
+//       S M A L L     M A P     O P T I M I Z A T I O N
 // ------------------------------------------------------------------------
 template <size_t N,
           template <class, class, class, class, class> class RefMap,
@@ -29,7 +33,7 @@ template <size_t N,
           class Hash  = std::hash<K>, 
           class Pred  = std::equal_to<K>, 
           class Alloc = std::allocator<std::pair<const K, V> > >
-class sho
+class smo
 {
 public:
     typedef RefMap<K, V, Hash, Pred, Alloc>     Map;
@@ -75,7 +79,7 @@ public:
         value_type * getPtr() const   { assert(_p); return _p; }
 
     private:
-        friend class sho;
+        friend class smo;
         
         value_type *_p;
         MapIt       _it;
@@ -85,15 +89,15 @@ public:
     typedef Iterator<value_type, map_iterator>              iterator;
     typedef Iterator<const value_type, map_const_iterator>  const_iterator;
 
-    sho(size_type = 0) : _cnt(0) {}
+    smo(size_type = 0) : _cnt(0) {}
 
-    ~sho() 
+    ~smo() 
     { 
         if (_hasMap()) 
             _cleanMap();
     }
         
-    sho(const sho &o) : _cnt(0) 
+    smo(const smo &o) : _cnt(0) 
     {
         if (o._hasMap())
             _cnt = (uintptr_t)(new Map(o._getMap()));
@@ -101,7 +105,7 @@ public:
             _copyLocal(o);
     }
 
-    sho& operator=(const sho &o) 
+    smo& operator=(const smo &o) 
     {
         if (this == &o)
             return *this;
@@ -285,7 +289,7 @@ private:
 
     void   _cleanMap() { delete _getMap(); _cnt = 0; }
 
-    void   _copyLocal(const sho &o) 
+    void   _copyLocal(const smo &o) 
     {
         assert(!_hasMap());
         _cnt = o._cnt;
@@ -315,6 +319,8 @@ private:
     uintptr_t  _cnt;
     value_type _items[N];
 };
+
+} // sho namespace
 
 
 #endif // sho__h__

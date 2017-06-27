@@ -251,12 +251,13 @@ void run_test(const char *container_name, size_t num_iter)
 #else
     #define BASE_MAP std::unordered_map
 #endif
+
 // -----------------------------------------------------------
 // -----------------------------------------------------------
 int main()
 {
     typedef BASE_MAP<uint32_t, void *>          StdMap;
-    typedef sho<3, BASE_MAP, uint32_t, void *>  ShoMap;
+    typedef sho::smo<3, BASE_MAP, uint32_t, void *>  ShoMap;
 
     run_test<StdMap, uint32_t, void *>(TOSTRING(BASE_MAP), 5000000);
 
