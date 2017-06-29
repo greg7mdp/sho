@@ -23,7 +23,38 @@
 namespace sho
 {
 
-// ------------------------------------------------------------------------
+// ----------------
+template <class Val, class MapIt>
+class ShoIterator : public std::iterator<std::bidirectional_iterator_tag, Val>
+{
+public:
+    typedef Val value_type;
+
+    template <class CV, class CIt>
+    ShoIterator(const ShoIterator<CV, CIt> &o) : _p((value_type *)o._p), _it(*((MapIt *)&o._it)) {}
+
+    explicit ShoIterator(const value_type *p = 0) : _p((value_type *)p) {}
+    explicit ShoIterator(const MapIt &o) : _p(0), _it(o) {}
+
+    ShoIterator& operator++()   { if (_p) ++_p; else ++_it; return *this; }
+    ShoIterator& operator--()   { if (_p) --_p; else --_it; return *this; }
+    ShoIterator operator++(int) { ShoIterator tmp(*this); ++*this; return tmp; }
+    ShoIterator operator--(int) { ShoIterator tmp(*this); --*this; return tmp; }
+
+    bool operator==(const ShoIterator &o) const { return _p ? _p == o._p : _it == o._it; }
+    bool operator!=(const ShoIterator &o) const { return !(*this == o); }
+
+    value_type& operator*() const  { return _p ? *_p : *_it; }
+    value_type* operator->() const { return &(operator*()); }
+        
+    const MapIt& getMapIt() const { assert(!_p); return _it; }
+    value_type * getPtr() const   { assert(_p); return _p; }
+
+    value_type *_p;
+    MapIt       _it;
+};
+
+// --------------------------------ShoI----------------------------------------
 //       S M A L L     M A P     O P T I M I Z A T I O N
 // ------------------------------------------------------------------------
 template <size_t N,
@@ -51,43 +82,10 @@ public:
     typedef typename Map::iterator              map_iterator;
     typedef typename Map::const_iterator        map_const_iterator;
 
-    // ----------------
-    template <class Val, class MapIt>
-    class Iterator : public std::iterator<std::bidirectional_iterator_tag, Val>
-    {
-    public:
-        typedef Val value_type;
-
-        template <class CV, class CIt>
-        Iterator(const Iterator<CV, CIt> &o) : _p((value_type *)o._p), _it(*((MapIt *)&o._it)) {}
-
-        explicit Iterator(const value_type *p = 0) : _p((value_type *)p) {}
-        explicit Iterator(const MapIt &o) : _p(0), _it(o) {}
-
-        Iterator& operator++()   { if (_p) ++_p; else ++_it; return *this; }
-        Iterator& operator--()   { if (_p) --_p; else --_it; return *this; }
-        Iterator operator++(int) { Iterator tmp(*this); ++*this; return tmp; }
-        Iterator operator--(int) { Iterator tmp(*this); --*this; return tmp; }
-
-        bool operator==(const Iterator &o) const { return _p ? _p == o._p : _it == o._it; }
-        bool operator!=(const Iterator &o) const { return !(*this == o); }
-
-        value_type& operator*() const  { return _p ? *_p : *_it; }
-        value_type* operator->() const { return &(operator*()); }
-        
-        const MapIt& getMapIt() const { assert(!_p); return _it; }
-        value_type * getPtr() const   { assert(_p); return _p; }
-
-    private:
-        friend class smo;
-        
-        value_type *_p;
-        MapIt       _it;
-    };
 
     // ----------------
-    typedef Iterator<value_type, map_iterator>              iterator;
-    typedef Iterator<const value_type, map_const_iterator>  const_iterator;
+    typedef ShoIterator<value_type, map_iterator>              iterator;
+    typedef ShoIterator<const value_type, map_const_iterator>  const_iterator;
 
     smo(size_type = 0) : _cnt(0) {}
 

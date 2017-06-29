@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>  
+
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">  
+  <!-- VC 2015 -->
+  <Type Name="sho::smo&lt;*,*,*,*,*,*,*&gt;">  
+      <DisplayString Condition="_cnt &lt;= 1000">{{ size={_cnt} }}</DisplayString>
+      <DisplayString Condition="_cnt &gt; 1000">{*(Map *)_cnt}</DisplayString>
+      <Expand>
+        <ExpandedItem Condition="_cnt &gt; 1000">(Map *)_cnt</ExpandedItem>
+        <ArrayItems  Condition="_cnt &lt;= 1000">
+          <Size>_cnt</Size>
+          <ValuePointer>_items</ValuePointer>
+        </ArrayItems>
+      </Expand>
+  </Type>  
+    
+  <Type Name="sho::ShoIterator&lt;*,*&gt;">
+    <DisplayString Condition="_p!=0">{*_p}</DisplayString>
+    <DisplayString Condition="_p==0">{_it}</DisplayString>
+  </Type>
+
+</AutoVisualizer>  
