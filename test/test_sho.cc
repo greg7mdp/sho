@@ -225,10 +225,6 @@ void run_test(const char *container_name, size_t num_iter)
                     hashes[i].erase(hashes[i].find(first));
             }
         }
-        auto it = hashes[i].begin();
-		auto ite = hashes[i].end();
-		Hash::const_iterator ci = hashes[i].find((K)inserted);
-        auto& h = hashes[i];
 
         if (inserted && hashes[i].find(inserted) == hashes[i].end())
             abort();
@@ -248,7 +244,7 @@ void run_test(const char *container_name, size_t num_iter)
 #define STRINGIFY(A)  #A
 #define TOSTRING(x) STRINGIFY(x)
 
-#if 1
+#if 0
     #define SPP_DEFAULT_ALLOCATOR spp::libc_allocator
     #include <sparsepp/spp.h>
     #define BASE_MAP spp::sparse_hash_map
@@ -260,12 +256,12 @@ void run_test(const char *container_name, size_t num_iter)
 // -----------------------------------------------------------
 int main()
 {
-    typedef BASE_MAP<uint32_t, uint32_t>          StdMap;
-    typedef sho::smo<3, BASE_MAP, uint32_t, uint32_t>  ShoMap;
+    typedef BASE_MAP<uint32_t, void *>          StdMap;
+    typedef sho::smo<3, BASE_MAP, uint32_t, void *>  ShoMap;
 
-    //run_test<StdMap, uint32_t, void *>(TOSTRING(BASE_MAP), 5000000);
+    run_test<StdMap, uint32_t, void *>(TOSTRING(BASE_MAP), 5000000);
 
     char cont_name[128];
     sprintf(cont_name, "%s with sho", TOSTRING(BASE_MAP));
-    run_test<ShoMap, uint32_t, uint32_t>(cont_name, 5); //5000000);
+    run_test<ShoMap, uint32_t, void *>(cont_name, 5000000);
 }
