@@ -15,7 +15,12 @@
   </Type>  
     
   <Type Name="sho::ShoIterator&lt;*,*&gt;">
+    <DisplayString Condition="_p!=0">{*_p}</DisplayString>
     <DisplayString Condition="_p==0">{_it}</DisplayString>
+    <Expand>
+      <ExpandedItem Condition="_p!=0">*_p</ExpandedItem>
+      <ExpandedItem Condition="_p==0">_it</ExpandedItem>
+    </Expand>
   </Type>
 
 </AutoVisualizer>  
