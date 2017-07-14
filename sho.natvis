@@ -15,7 +15,6 @@
   </Type>  
     
   <Type Name="sho::ShoIterator&lt;*,*&gt;">
-    <DisplayString Condition="_p!=0">{*_p}</DisplayString> 
     <DisplayString Condition="_p==0">{_it}</DisplayString>
   </Type>
 
